@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子质量计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 18px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        .result.show {
+            display: block;
+        }
+        .result-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .result-value {
+            color: #333;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .result-unit {
+            color: #888;
+            font-size: 16px;
+            margin-left: 5px;
+        }
+        .error {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+        }
+        .error .result-value {
+            color: #c53030;
+            font-size: 18px;
+        }
+        .examples {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 10px;
+        }
+        .examples-title {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .examples-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .example-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            color: #667eea;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>分子质量计算器</h1>
+        <p class="subtitle">支持括号、逗号分隔的物质输入</p>
+        
+        <div class="input-group">
+            <label for="formula">请输入化学式：</label>
+            <input type="text" id="formula" placeholder="例如：H2O, NaCl, Ca(OH)2" autocomplete="off">
+        </div>
+        
+        <button onclick="calculate()">计算分子质量</button>
+        
+        <div class="result" id="result">
+            <div class="result-label">分子质量</div>
+            <div class="result-value" id="resultValue"></div>
+        </div>
+        
+        <div class="examples">
+            <div class="examples-title">示例（点击填入）：</div>
+            <div class="examples-list">
+                <button class="example-btn" onclick="setExample('H2O')">H2O</button>
+                <button class="example-btn" onclick="setExample('NaCl')">NaCl</button>
+                <button class="example-btn" onclick="setExample('Ca(OH)2')">Ca(OH)2</button>
+                <button class="example-btn" onclick="setExample('H2SO4')">H2SO4</button>
+                <button class="example-btn" onclick="setExample('C6H12O6')">C6H12O6</button>
+                <button class="example-btn" onclick="setExample('Fe2O3')">Fe2O3</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 原子质量表
+        const atomicWeights = {
+            'H': 1.0, 'He': 4.0, 'Li': 7.0, 'Be': 9.0, 'B': 11.0,
+            'C': 12.0, 'N': 14.0, 'O': 16.0, 'F': 19.0, 'Ne': 20.0,
+            'Na': 23.0, 'Mg': 24.0, 'Al': 27.0, 'Si': 28.0, 'P': 31.0,
+            'S': 32.0, 'Cl': 35.5, 'Ar': 40.0, 'K': 39.0, 'Ca': 40.0,
+            'Sc': 45.0, 'Ti': 48.0, 'V': 51.0, 'Cr': 52.0, 'Mn': 55.0,
+            'Fe': 56.0, 'Co': 59.0, 'Ni': 59.0, 'Cu': 64.0, 'Zn': 65.0,
+            'Ga': 70.0, 'Ge': 73.0, 'As': 75.0, 'Se': 79.0, 'Br': 80.0,
+            'Kr': 84.0, 'I': 127.0
+        };
+
+        // 处理逗号分隔（如 2H2O 表示两个水分子）
+        function dealWithComma(str) {
+            if (!str.includes(',')) {
+                return str;
+            }
+            let result = '';
+            const parts = str.split(',');
+            for (const part of parts) {
+                if (part.length === 0) continue;
+                if (/\d/.test(part[0])) {
+                    let count = 0;
+                    for (let i = 0; i < part.length; i++) {
+                        if (!/\d/.test(part[i])) {
+                            count = parseInt(part.substring(0, i));
+                            const substance = part.substring(i);
+                            for (let j = 0; j < count; j++) {
+                                result += substance;
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    result += part;
+                }
+            }
+            return result;
+        }
+
+        // 处理中括号
+        function dealWithBrackets(str) {
+            if (!str.includes('[')) {
+                return str;
+            }
+            let result = '';
+            const parts = str.split('[');
+            for (const part of parts) {
+                if (!part.includes(']')) {
+                    result += part;
+                } else {
+                    const endIdx = part.indexOf(']');
+                    const substance = part.substring(0, endIdx);
+                    let numStr = '';
+                    let i = endIdx + 1;
+                    while (i < part.length && /\d/.test(part[i])) {
+                        numStr += part[i];
+                        i++;
+                    }
+                    const count = numStr ? parseInt(numStr) : 1;
+                    for (let j = 0; j < count; j++) {
+                        result += substance;
+                    }
+                    result += part.substring(i);
+                }
+            }
+            return result;
+        }
+
+        // 处理小括号
+        function dealWithParentheses(str) {
+            if (!str.includes('(')) {
+                return str;
+            }
+            let result = '';
+            const parts = str.split('(');
+            for (const part of parts) {
+                if (!part.includes(')')) {
+                    result += part;
+                } else {
+                    const endIdx = part.indexOf(')');
+                    const substance = part.substring(0, endIdx);
+                    let numStr = '';
+                    let i = endIdx + 1;
+                    while (i < part.length && /\d/.test(part[i])) {
+                        numStr += part[i];
+                        i++;
+                    }
+                    const count = numStr ? parseInt(numStr) : 1;
+                    for (let j = 0; j < count; j++) {
+                        result += substance;
+                    }
+                    result += part.substring(i);
+                }
+            }
+            return result;
+        }
+
+        // 计算分子质量
+        function calculateMass(str) {
+            const len = str.length;
+            let mass = 0;
+            let foundElement = false; // 标记是否找到有效元素
+
+            for (let k = 0; k < len; k++) {
+                // 跳过数字、小写字母和空格
+                if (/\d/.test(str[k]) || /[a-z]/.test(str[k]) || /\s/.test(str[k])) {
+                    continue;
+                }
+
+                // 大写字母开头，识别元素
+                let element, number;
+
+                // 检查是否是双字母元素（如 Na, Cl）
+                if (k + 1 < len && /[a-z]/.test(str[k + 1])) {
+                    element = str.substring(k, k + 2);
+                    // 检查元素是否有效
+                    if (!atomicWeights.hasOwnProperty(element)) {
+                        return -1;
+                    }
+                    foundElement = true;
+                    // 解析数字
+                    let start = k + 2;
+                    let numStr = '';
+                    let m = start;
+                    while (m < len && /\d/.test(str[m])) {
+                        numStr += str[m];
+                        m++;
+                    }
+                    number = numStr ? parseInt(numStr) : 1;
+                    k = m - 1; // 更新循环索引
+                } else {
+                    // 单字母元素
+                    element = str[k];
+                    if (!atomicWeights.hasOwnProperty(element)) {
+                        return -1;
+                    }
+                    foundElement = true;
+                    // 解析数字
+                    let start = k + 1;
+                    let numStr = '';
+                    let m = start;
+                    while (m < len && /\d/.test(str[m])) {
+                        numStr += str[m];
+                        m++;
+                    }
+                    number = numStr ? parseInt(numStr) : 1;
+                    k = m - 1; // 更新循环索引
+                }
+
+                mass += number * atomicWeights[element];
+            }
+
+            // 如果没有找到任何有效元素，返回-1表示无效输入
+            if (!foundElement) {
+                return -1;
+            }
+
+            return mass;
+        }
+
+        // 主计算函数
+        function calculate() {
+            const input = document.getElementById('formula').value.trim();
+            const resultDiv = document.getElementById('result');
+            const resultValue = document.getElementById('resultValue');
+
+            if (!input) {
+                resultDiv.classList.add('show', 'error');
+                resultValue.textContent = '请输入化学式';
+                return;
+            }
+
+            // 处理各种格式
+            let processed = dealWithComma(input);
+            processed = dealWithBrackets(processed);
+            processed = dealWithParentheses(processed);
+
+            const mass = calculateMass(processed);
+
+            resultDiv.classList.remove('error');
+
+            if (mass < 0) {
+                resultDiv.classList.add('show', 'error');
+                resultValue.textContent = '无效的化学式，请检查输入';
+            } else {
+                resultDiv.classList.add('show');
+                resultValue.innerHTML = mass.toFixed(2) + '<span class="result-unit">g/mol</span>';
+            }
+        }
+
+        // 设置示例
+        function setExample(formula) {
+            document.getElementById('formula').value = formula;
+            calculate();
+        }
+
+        // 回车键触发计算
+        document.getElementById('formula').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
