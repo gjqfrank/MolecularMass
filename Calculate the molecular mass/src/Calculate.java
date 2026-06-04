@@ -149,12 +149,26 @@ public class Calculate{
                     || Character.isWhitespace(s.charAt(k)) == true) {
                 continue;
             } else {
+                // 防止数组越界
+                if (k + 1 >= len) {
+                    // 最后一个字符是大写字母，代表单个元素
+                    current_element = s.substring(k, k + 1);
+                    if (!atomicWeights.containsKey(current_element)) {
+                        return -1.0; // 无效元素
+                    }
+                    mass += atomicWeights.get(current_element);
+                    continue;
+                }
 
                 if (Character.isLowerCase(s.charAt(k + 1)) == true) {
                     int start = k + 2;
                     int end = 0;
                     current_element = s.substring(k, k + 2);
-                    if (Character.isDigit(s.charAt(k + 2)) == false) {
+                    // 检查元素是否有效
+                    if (!atomicWeights.containsKey(current_element)) {
+                        return -1.0; // 无效元素
+                    }
+                    if (k + 2 >= len || Character.isDigit(s.charAt(k + 2)) == false) {
                         number = 1;
                     } else {
                         for (int m = start; m < len; m++) {
@@ -172,6 +186,10 @@ public class Calculate{
                     int start = k + 1;
                     int end = 0;
                     current_element = s.substring(k, k + 1);
+                    // 检查元素是否有效
+                    if (!atomicWeights.containsKey(current_element)) {
+                        return -1.0; // 无效元素
+                    }
                     if (Character.isDigit(s.charAt(k + 1)) == false) {
                         number = 1;
                     } else {
@@ -192,20 +210,24 @@ public class Calculate{
         return mass;
     }
     public static void main(String[] args) {
-        while (true){
+        Scanner x = new Scanner(System.in);
+        while (true) {
             System.out.println("请输入物质：");
-            Scanner x =new Scanner(System.in);
-            String substance = x.next(); 
-            if (substance != "quit"){
-                StringBuffer r1 = dealWithfenhao(substance);
-                StringBuffer r2 = dealWithzhongkh(r1.toString());
-                StringBuffer r3 = dealWithxiaokh(r2.toString());
-                Double result = Ultcalc(r3.toString());
-                System.out.println(result);
-            }else if (substance == "quit"){
-                x.close();
+            String substance = x.next();
+            if (substance.equals("quit")) {
+                System.out.println("程序结束");
                 break;
             }
+            StringBuffer r1 = dealWithfenhao(substance);
+            StringBuffer r2 = dealWithzhongkh(r1.toString());
+            StringBuffer r3 = dealWithxiaokh(r2.toString());
+            Double result = Ultcalc(r3.toString());
+            if (result < 0) {
+                System.out.println("输入的不是有效的化学物质，请重新输入。");
+                continue;
+            }
+            System.out.println(result);
         }
+        x.close();
     }
 }
