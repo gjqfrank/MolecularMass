@@ -144,6 +144,7 @@ public class Calculate{
         double mass = 0.0;
         int number = 0;
         String current_element = " ";
+        boolean foundElement = false; // 标记是否找到有效元素
         for (int k = 0; k < len; k++) {
             if (Character.isDigit(s.charAt(k)) == true || Character.isLowerCase(s.charAt(k)) == true
                     || Character.isWhitespace(s.charAt(k)) == true) {
@@ -156,6 +157,7 @@ public class Calculate{
                     if (!atomicWeights.containsKey(current_element)) {
                         return -1.0; // 无效元素
                     }
+                    foundElement = true;
                     mass += atomicWeights.get(current_element);
                     continue;
                 }
@@ -168,6 +170,7 @@ public class Calculate{
                     if (!atomicWeights.containsKey(current_element)) {
                         return -1.0; // 无效元素
                     }
+                    foundElement = true;
                     if (k + 2 >= len || Character.isDigit(s.charAt(k + 2)) == false) {
                         number = 1;
                     } else {
@@ -190,6 +193,7 @@ public class Calculate{
                     if (!atomicWeights.containsKey(current_element)) {
                         return -1.0; // 无效元素
                     }
+                    foundElement = true;
                     if (Character.isDigit(s.charAt(k + 1)) == false) {
                         number = 1;
                     } else {
@@ -206,6 +210,10 @@ public class Calculate{
                     mass += number * atomicWeights.get(current_element);
                 }
             }
+        }
+        // 如果没有找到任何有效元素，返回-1表示无效输入
+        if (!foundElement) {
+            return -1.0;
         }
         return mass;
     }

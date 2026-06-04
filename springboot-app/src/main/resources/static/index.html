@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分子质量计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 18px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        .result.show {
+            display: block;
+        }
+        .result-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .result-value {
+            color: #333;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .result-unit {
+            color: #888;
+            font-size: 16px;
+            margin-left: 5px;
+        }
+        .error {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+        }
+        .error .result-value {
+            color: #c53030;
+            font-size: 18px;
+        }
+        .examples {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 10px;
+        }
+        .examples-title {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .examples-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .example-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            color: #667eea;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 15px;
+        }
+        .loading.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>分子质量计算器</h1>
+        <p class="subtitle">支持括号、逗号分隔的物质输入</p>
+        
+        <div class="input-group">
+            <label for="formula">请输入化学式：</label>
+            <input type="text" id="formula" placeholder="例如：H2O, NaCl, Ca(OH)2" autocomplete="off">
+        </div>
+        
+        <button onclick="calculate()" id="calcBtn">计算分子质量</button>
+        
+        <div class="loading" id="loading">正在计算...</div>
+        
+        <div class="result" id="result">
+            <div class="result-label">分子质量</div>
+            <div class="result-value" id="resultValue"></div>
+        </div>
+        
+        <div class="examples">
+            <div class="examples-title">示例（点击填入）：</div>
+            <div class="examples-list">
+                <button class="example-btn" onclick="setExample('H2O')">H2O</button>
+                <button class="example-btn" onclick="setExample('NaCl')">NaCl</button>
+                <button class="example-btn" onclick="setExample('Ca(OH)2')">Ca(OH)2</button>
+                <button class="example-btn" onclick="setExample('H2SO4')">H2SO4</button>
+                <button class="example-btn" onclick="setExample('C6H12O6')">C6H12O6</button>
+                <button class="example-btn" onclick="setExample('Fe2O3')">Fe2O3</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function calculate() {
+            const input = document.getElementById('formula').value.trim();
+            const resultDiv = document.getElementById('result');
+            const resultValue = document.getElementById('resultValue');
+            const loadingDiv = document.getElementById('loading');
+            const calcBtn = document.getElementById('calcBtn');
+
+            if (!input) {
+                resultDiv.classList.add('show', 'error');
+                resultValue.textContent = '请输入化学式';
+                return;
+            }
+
+            // 显示加载状态
+            loadingDiv.classList.add('show');
+            resultDiv.classList.remove('show', 'error');
+            calcBtn.disabled = true;
+
+            try {
+                // 调用后端 API
+                const response = await fetch(`/api/calculate?formula=${encodeURIComponent(input)}`);
+                const data = await response.json();
+
+                loadingDiv.classList.remove('show');
+                calcBtn.disabled = false;
+
+                if (data.success) {
+                    resultDiv.classList.add('show');
+                    resultDiv.classList.remove('error');
+                    resultValue.innerHTML = data.mass.toFixed(2) + '<span class="result-unit">g/mol</span>';
+                } else {
+                    resultDiv.classList.add('show', 'error');
+                    resultValue.textContent = data.message;
+                }
+            } catch (error) {
+                loadingDiv.classList.remove('show');
+                calcBtn.disabled = false;
+                resultDiv.classList.add('show', 'error');
+                resultValue.textContent = '网络错误，请检查服务器是否启动';
+            }
+        }
+
+        function setExample(formula) {
+            document.getElementById('formula').value = formula;
+            calculate();
+        }
+
+        // 回车键触发计算
+        document.getElementById('formula').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
