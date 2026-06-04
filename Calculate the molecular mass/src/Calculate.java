@@ -1,9 +1,6 @@
-package Cal;
-
 import java.util.*;
 
-public class CalcutateMass {
-
+public class Calculate{
     public static StringBuffer dealWithfenhao(String s2) {
         StringBuffer s1 = new StringBuffer();
         if (s2.indexOf(',') != -1) {
@@ -100,7 +97,7 @@ public class CalcutateMass {
         return s5;
     }
 
-    public static Double Ultcalc(String s) {
+    public static double Ultcalc(String s) {
         final Map<String, Double> atomicWeights = new HashMap<>();
 
         // 添加 1~36 号元素（H~Kr）
@@ -194,5 +191,21 @@ public class CalcutateMass {
         }
         return mass;
     }
-
+    public static void main(String[] args) {
+        while (true){
+            System.out.println("请输入物质：");
+            Scanner x =new Scanner(System.in);
+            String substance = x.next(); 
+            if (substance != "quit"){
+                StringBuffer r1 = dealWithfenhao(substance);
+                StringBuffer r2 = dealWithzhongkh(r1.toString());
+                StringBuffer r3 = dealWithxiaokh(r2.toString());
+                Double result = Ultcalc(r3.toString());
+                System.out.println(result);
+            }else if (substance == "quit"){
+                x.close();
+                break;
+            }
+        }
+    }
 }
